@@ -49,7 +49,7 @@ def build_tools(memory: MemoryStore, user_id: str):
                 {"flight": "LH1832", "depart": "11:40", "arrive": "13:35", "price_eur": 165},
                 {"flight": "BA0610", "depart": "17:25", "arrive": "19:20", "price_eur": 140},
             ],
-        }, ensure_ascii=False)
+        }, ensure_ascii=False)           #Ex : "\u0627\u0644\u0642\u0627\u0647\u0631\u0629" it wil be "cairo"
 
     @tool
     def search_hotels(city: str, max_price_per_night_eur: int = 0) -> str:

@@ -108,12 +108,43 @@ def build_app():
             "_Waiting for a request._", render_tools([]), render_memory(runtime, conversation_id),
         )
 
-    with gr.Blocks(title="Travel Agent · Memory in Action", theme=gr.themes.Soft()) as app:
-        gr.Markdown(
-            "# 🧭 Travel Agent · Memory in Action\n"
-            "Watch the agent read memory, prepare a plan, choose mock tools, and assemble an answer. "
-            "The activity trace shows observable actions, not hidden chain-of-thought."
-        )
+    with gr.Blocks(
+        title="Travel Agent · Memory in Action",
+        theme=gr.themes.Soft(),
+        css="""
+        body {
+            min-height: 100vh;
+        }
+        .gradio-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .gradio-container > .main {
+            width: 100%;
+        }
+        :root,
+        body,
+        button,
+        input,
+        textarea,
+        select,
+        .prose,
+        .prose * {
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-style: normal !important;
+        }
+        footer {
+            display: none !important;
+        }
+        .composer-action,
+        .composer-action button {
+            height: 44px !important;
+            min-height: 44px !important;
+        }
+        """,
+    ) as app:
         conversation_id = gr.State(value=lambda: uuid.uuid4().hex)
         with gr.Row():
             with gr.Column(scale=6):
@@ -124,13 +155,12 @@ def build_app():
                     lines=2,
                 )
                 with gr.Row():
-                    send_hint = gr.Markdown("Press **Enter** to send. Start by sharing preferences, then request a trip.")
-                    new_conversation = gr.Button("New conversation", size="sm")
+                    send_button = gr.Button("Send", variant="primary", scale=1, min_width=0, elem_classes=["composer-action"])
+                    new_conversation = gr.Button("New conversation", scale=1, min_width=0, elem_classes=["composer-action"])
                 gr.Examples(
                     [
                         "I like museums and Italian food, and I don't like early morning activities.",
                         "My hotel budget is 100-150 EUR per night.",
-                        "Plan me a weekend in Florence.",
                         "What preferences are saved for me?",
                     ], inputs=message,
                 )
@@ -150,10 +180,17 @@ def build_app():
                     "**Tools:** flights · hotels · attractions · restaurants · weather (all mock results)."
                 )
 
+        send_event_inputs = [message, chat, conversation_id]
+        send_event_outputs = [chat, message, stage_panel, plan_panel, trace_panel, tools_panel, memory_panel]
         message.submit(
             on_send,
-            [message, chat, conversation_id],
-            [chat, message, stage_panel, plan_panel, trace_panel, tools_panel, memory_panel],
+            send_event_inputs,
+            send_event_outputs,
+        )
+        send_button.click(
+            on_send,
+            send_event_inputs,
+            send_event_outputs,
         )
         new_conversation.click(
             start_new_conversation,
